@@ -1,4 +1,4 @@
-Basic Python + Webdriver test, it runs on my computer running Ubuntu 20.04: 
+Basic Python 3 + Webdriver test, it runs on my computer running Ubuntu 20.04: 
 - I installed Gecko driver (e.g. see location in the test file); 
 - Installed the Selenium and the Pytest packages.
 
