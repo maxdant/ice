@@ -4,75 +4,84 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 import time
+import pytest
 
 
-def test_sign_up_full_flow():
+@pytest.fixture(scope="class")
+def firefox_init(request):
     driver_location = './drivers/geckodriver'
-    browser = webdriver.Firefox(executable_path=driver_location)
-
-    # check the quotation flow
-    #
-    # 1) open the page https://acc-interconnect.icepay.com/portal
-    #     assert something about the page
-    browser.get('https://acc-interconnect.icepay.com/portal')
-    browser.maximize_window()
-
-    try:
-        login_button = browser.find_element(By.ID, 'btn-login')
-        assert login_button.text == 'Login'
-    except NoSuchElementException:
-        print('Login button is not present')
-
-    # 2) click Sign Up and assert the browser is on the right page and tab
-    try:
-        signup_link = browser.find_element(By.LINK_TEXT, 'Sign Up now!')
-        assert signup_link.text == 'Sign Up now!'
-    except NoSuchElementException:
-        print('Sign up link is not present')
-
-    signup_link.click()
-
-    browser.switch_to.window(browser.window_handles[1])
-
-    wait = WebDriverWait(browser, 10)
-    wait.until(ec.visibility_of_element_located((By.NAME, 'email')))
-
-    assert browser.current_url == 'https://acc-interconnect.icepay.com/portal/sign-up'
-
-    # 3. Fill the form and click Sign Up
-
-    try:
-        browser.find_element(By.NAME, 'email').send_keys('email@email.com')
-        browser.find_element(By.NAME, 'companyName').send_keys('My company'+str(time.time()))
-        browser.find_element(By.NAME, 'name').send_keys('Nome')
-        browser.find_element(By.NAME, 'prefix').send_keys('p')
-        browser.find_element(By.NAME, 'surname').send_keys('Cognome')
-
-    except NoSuchElementException:
-        print('A field in the Sign Up page is not present')
-
-    try:
-        browser.find_element(By.NAME, 'button').click()
-    except NoSuchElementException:
-        print('The Sign Up button is not present')
-
-    wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'vs-alert')))
-
-    alert_successful_registration = browser.find_element(By.CLASS_NAME, 'vs-alert')
-    assert alert_successful_registration.text == \
-           'You have signed up successfully. Please check your inbox for invitation mail.'
+    firefox_driver = webdriver.Firefox(executable_path=driver_location)
+    request.cls.driver = firefox_driver
+    yield
+    firefox_driver.quit()
 
 
-    # 4. Wait for email from ICEPAY. Hint: You might use some open source email api
+@pytest.mark.usefixtures("firefox_init")
+class BasicTest:
+    pass
 
-    #trashspam.com can be a good one to use, simple GET on an email address and emails are in a JSON file
 
-    # 5. Open email, click Create Your User button or navigate (href)
+class TestSignUpFlow(BasicTest):
+    def test_open_url(self):
+        browser = self.driver
+        browser.get('https://acc-interconnect.icepay.com/portal')
 
-    # 6. Input password and click Sign Up
+        browser.maximize_window()
 
-    # 7. Go to ICEPAY portal https://acc-interconnect.icepay.com/portal
+        try:
+            login_button = browser.find_element(By.ID, 'btn-login')
+            assert login_button.text == 'Login'
+        except NoSuchElementException:
+            print('Login button is not present')
 
-    # 8. Login using email and password
+        # 2) click Sign Up and assert the browser is on the right page and tab
+        try:
+            signup_link = browser.find_element(By.LINK_TEXT, 'Sign Up now!')
+            assert signup_link.text == 'Sign Up now!'
+        except NoSuchElementException:
+            print('Sign up link is not present')
 
-    browser.quit()
+        signup_link.click()
+
+        browser.switch_to.window(browser.window_handles[1])
+
+        wait = WebDriverWait(browser, 10)
+        wait.until(ec.visibility_of_element_located((By.NAME, 'email')))
+
+        assert browser.current_url == 'https://acc-interconnect.icepay.com/portal/sign-up'
+
+        # 3. Fill the form and click Sign Up
+
+        try:
+            browser.find_element(By.NAME, 'email').send_keys('email@email.com')
+            browser.find_element(By.NAME, 'companyName').send_keys('My company'+str(time.time()))
+            browser.find_element(By.NAME, 'name').send_keys('Nome')
+            browser.find_element(By.NAME, 'prefix').send_keys('p')
+            browser.find_element(By.NAME, 'surname').send_keys('Cognome')
+
+        except NoSuchElementException:
+            print('A field in the Sign Up page is not present')
+
+        try:
+            browser.find_element(By.NAME, 'button').click()
+        except NoSuchElementException:
+            print('The Sign Up button is not present')
+
+        wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'vs-alert')))
+
+        alert_successful_registration = browser.find_element(By.CLASS_NAME, 'vs-alert')
+        assert alert_successful_registration.text == \
+               'You have signed up successfully. Please check your inbox for invitation mail.'
+
+
+        # 4. Wait for email from ICEPAY. Hint: You might use some open source email api
+
+        #trashspam.com can be a good one to use, simple GET on an email address and emails are in a JSON file
+
+        # 5. Open email, click Create Your User button or navigate (href)
+
+        # 6. Input password and click Sign Up
+
+        # 7. Go to ICEPAY portal https://acc-interconnect.icepay.com/portal
+
+        # 8. Login using email and password
