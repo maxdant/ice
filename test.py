@@ -5,6 +5,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 import time
 import pytest
+from pages.loginPage import *
+from pages.signupPage import *
 
 
 @pytest.fixture(scope="class")
@@ -22,57 +24,66 @@ class BasicTest:
 
 
 class TestSignUpFlow(BasicTest):
-    def test_open_url(self):
-        browser = self.driver
-        browser.get('https://acc-interconnect.icepay.com/portal')
+    timeout_wait_for_element = 10
+
+    def open_log_in_page(self, browser):
+        browser.get(login_page_url)
 
         browser.maximize_window()
 
         try:
-            login_button = browser.find_element(By.ID, 'btn-login')
-            assert login_button.text == 'Login'
+            login_button = browser.find_element(By.ID, login_button_id)
+            assert login_button.text == login_button_text
         except NoSuchElementException:
             print('Login button is not present')
 
-        # 2) click Sign Up and assert the browser is on the right page and tab
+    def open_sign_up_page(self, browser):
         try:
-            signup_link = browser.find_element(By.LINK_TEXT, 'Sign Up now!')
-            assert signup_link.text == 'Sign Up now!'
+            sign_up_link = browser.find_element(By.LINK_TEXT, signup_link_text)
+            assert sign_up_link.text == signup_link_text
         except NoSuchElementException:
             print('Sign up link is not present')
 
-        signup_link.click()
+        sign_up_link.click()
 
         browser.switch_to.window(browser.window_handles[1])
 
-        wait = WebDriverWait(browser, 10)
-        wait.until(ec.visibility_of_element_located((By.NAME, 'email')))
+        wait = WebDriverWait(browser, self.timeout_wait_for_element)
+        wait.until(ec.visibility_of_element_located((By.NAME, email_textbox_name)))
 
-        assert browser.current_url == 'https://acc-interconnect.icepay.com/portal/sign-up'
+        assert browser.current_url == signup_page_url
 
-        # 3. Fill the form and click Sign Up
-
+    def fill_signup_page_fields_and_signup(self, browser):
         try:
-            browser.find_element(By.NAME, 'email').send_keys('email@email.com')
-            browser.find_element(By.NAME, 'companyName').send_keys('My company'+str(time.time()))
-            browser.find_element(By.NAME, 'name').send_keys('Nome')
-            browser.find_element(By.NAME, 'prefix').send_keys('p')
-            browser.find_element(By.NAME, 'surname').send_keys('Cognome')
+            browser.find_element(By.NAME, email_textbox_name).send_keys('email@email.com')
+            browser.find_element(By.NAME, company_textbox_name).send_keys('My company' + str(time.time()))
+            browser.find_element(By.NAME, name_textbox_name).send_keys('Nome')
+            browser.find_element(By.NAME, prefix_textbox_name).send_keys('p')
+            browser.find_element(By.NAME, surname_textbox_name).send_keys('Cognome')
 
         except NoSuchElementException:
             print('A field in the Sign Up page is not present')
 
         try:
-            browser.find_element(By.NAME, 'button').click()
+            browser.find_element(By.NAME, signup_button_name).click()
         except NoSuchElementException:
             print('The Sign Up button is not present')
 
-        wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'vs-alert')))
+        wait = WebDriverWait(browser, self.timeout_wait_for_element)
+        wait.until(ec.visibility_of_element_located((By.CLASS_NAME, alert_successful_signup_class_name)))
 
-        alert_successful_registration = browser.find_element(By.CLASS_NAME, 'vs-alert')
-        assert alert_successful_registration.text == \
-               'You have signed up successfully. Please check your inbox for invitation mail.'
+        alert_successful_registration = browser.find_element(By.CLASS_NAME, alert_successful_signup_class_name)
+        assert alert_successful_registration.text == alert_successful_signup_text
 
+    def test_signup_flow(self):
+        browser = self.driver
+        self.open_log_in_page(browser)
+        self.open_sign_up_page(browser)
+        self.fill_signup_page_fields_and_signup(browser)
+
+
+
+        # Missing steps
 
         # 4. Wait for email from ICEPAY. Hint: You might use some open source email api
 
