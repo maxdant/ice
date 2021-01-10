@@ -76,6 +76,3 @@ def test_sign_up_full_flow():
     # 8. Login using email and password
 
     browser.quit()
-
-
-
