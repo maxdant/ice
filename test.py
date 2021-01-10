@@ -5,6 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 import time
 
+
 def test_sign_up_full_flow():
     driver_location = './drivers/geckodriver'
     browser = webdriver.Firefox(executable_path=driver_location)
@@ -34,7 +35,7 @@ def test_sign_up_full_flow():
     browser.switch_to.window(browser.window_handles[1])
 
     wait = WebDriverWait(browser, 10)
-    men_menu = wait.until(ec.visibility_of_element_located((By.NAME, 'email')))
+    wait.until(ec.visibility_of_element_located((By.NAME, 'email')))
 
     assert browser.current_url == 'https://acc-interconnect.icepay.com/portal/sign-up'
 
@@ -42,19 +43,29 @@ def test_sign_up_full_flow():
 
     try:
         browser.find_element(By.NAME, 'email').send_keys('email@email.com')
-        browser.find_element(By.NAME, 'companyName').send_keys('my company')
-        browser.find_element(By.NAME, 'name').send_keys('nome')
+        browser.find_element(By.NAME, 'companyName').send_keys('My company'+str(time.time()))
+        browser.find_element(By.NAME, 'name').send_keys('Nome')
         browser.find_element(By.NAME, 'prefix').send_keys('p')
-        browser.find_element(By.NAME, 'surname').send_keys('cognome')
+        browser.find_element(By.NAME, 'surname').send_keys('Cognome')
 
     except NoSuchElementException:
         print('A field in the Sign Up page is not present')
 
-    time.sleep(2)
+    try:
+        browser.find_element(By.NAME, 'button').click()
+    except NoSuchElementException:
+        print('The Sign Up button is not present')
 
+    wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'vs-alert')))
+
+    alert_successful_registration = browser.find_element(By.CLASS_NAME, 'vs-alert')
+    assert alert_successful_registration.text == \
+           'You have signed up successfully. Please check your inbox for invitation mail.'
 
 
     # 4. Wait for email from ICEPAY. Hint: You might use some open source email api
+
+    #trashspam.com can be a good one to use, simple GET on an email address and emails are in a JSON file
 
     # 5. Open email, click Create Your User button or navigate (href)
 
@@ -64,9 +75,7 @@ def test_sign_up_full_flow():
 
     # 8. Login using email and password
 
-    browser.close()
-
-
+    browser.quit()
 
 
 
