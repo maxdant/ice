@@ -1,7 +1,9 @@
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
-
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as ec
+import time
 
 def test_sign_up_full_flow():
     driver_location = './drivers/geckodriver'
@@ -24,19 +26,20 @@ def test_sign_up_full_flow():
     try:
         signup_link = browser.find_element(By.LINK_TEXT, 'Sign Up now!')
         assert signup_link.text == 'Sign Up now!'
-        signup_link.click()
-
-        browser.switch_to.window(browser.window_handles[1])
-
-        signup_button = browser.find_element(By.NAME, 'button')
-        assert signup_button.text == 'Sign Up'
-        assert browser.current_url == 'https://acc-interconnect.icepay.com/portal/sign-up'
-
     except NoSuchElementException:
         print('Sign up link is not present')
 
+    signup_link.click()
+
+    browser.switch_to.window(browser.window_handles[1])
+
+    wait = WebDriverWait(browser, 10)
+    men_menu = wait.until(ec.visibility_of_element_located((By.NAME, 'email')))
+
+    assert browser.current_url == 'https://acc-interconnect.icepay.com/portal/sign-up'
 
     # 3. Fill the form and click Sign Up
+
     try:
         browser.find_element(By.NAME, 'email').send_keys('email@email.com')
         browser.find_element(By.NAME, 'companyName').send_keys('my company')
@@ -46,7 +49,10 @@ def test_sign_up_full_flow():
 
     except NoSuchElementException:
         print('A field in the Sign Up page is not present')
-    # signup_button.click()
+
+    time.sleep(2)
+
+
 
     # 4. Wait for email from ICEPAY. Hint: You might use some open source email api
 
@@ -59,3 +65,8 @@ def test_sign_up_full_flow():
     # 8. Login using email and password
 
     browser.close()
+
+
+
+
+
